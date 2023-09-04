@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+  labels:
+    app: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      containers:
+        - name: test
+          image: 295719266680.dkr.ecr.us-east-1.amazonaws.com/test:IMAGE_TAG
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 600Mi
+              cpu: 900m
+            requests:
+              memory: 600Mi
+              cpu: 900m
+          ports:
+            - containerPort: 3017
+      # imagePullSecrets:
+      #   - name:
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test
+spec:
+  type: NodePort
+  ports:
+    - port: 3017
+      targetPort: 3017
+  selector:
+    app: test

@@ -14,9 +14,7 @@ jobs:
     - name: install dependencies
       run: | 
        sudo apt install npm
-       sudo npm install --package-lock
-       sudo npm audit fix
-          first 
+       sudo npm install --package-lock 
     - name: OWASP Dependency Check
       run: |
        wget https://github.com/jeremylong/DependencyCheck/releases/download/v6.0.2/dependency-check-6.0.2-release.zip

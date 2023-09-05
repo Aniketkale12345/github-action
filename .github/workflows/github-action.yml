@@ -73,7 +73,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: '$REGISTRY/$REPOSITORY:$IMAGE_TAG'
+        image-ref: '295719266680.dkr.ecr.us-east-1.amazonaws.com/test:d778c6cf7c1e2b3b09daffb273e5b41abfb0e3e6'
         format: 'table'
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'        

@@ -59,6 +59,7 @@ jobs:
     - name: Upload Trivy scan results to GitHub Security tab #results in github security tab
       uses: github/codeql-action/upload-sarif@v2
       with:
+        github-token: ${{ secrets.TOKEN_GITHUB }}
         sarif_file: 'trivy-results.sarif'      
 
     - name: Build, tag, and push docker image to Amazon ECR

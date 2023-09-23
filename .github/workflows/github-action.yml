@@ -2,23 +2,14 @@ on:
   push:
     branches:
       - master # Change this to your main branch
-
- 
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
- 
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
- 
-
       - name: Build
-        runs-on: ubuntu-latest
+ #       runs-on: ubuntu-latest
  #       steps:
   #        - uses: actions/checkout@v3
  #           with:

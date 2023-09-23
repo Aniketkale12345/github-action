@@ -1,87 +1,41 @@
-name: Deploy to EKS
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-permissions: write-all
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: install dependencies
-      run: | 
-       sudo apt install npm
-       sudo npm install --package-lock 
-    - name: OWASP Dependency Check
-      run: |
-       wget https://github.com/jeremylong/DependencyCheck/releases/download/v6.0.2/dependency-check-6.0.2-release.zip
-       unzip dependency-check-6.0.2-release.zip
-    - name: Run scan with ODC
-      run: |
-        dependency-check/bin/dependency-check.sh --project "sample.jar" --scan . > ODC-report
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: sast report
-        path: |
-          ./ODC-report       
+    branches:
+      - master # Change this to your main branch
+
  
-    - name: Install kubectl #marketplace
-      uses: azure/setup-kubectl@v2.0
-      with:
-        version: 'v1.24.0' # default is latest stable
-      id: install
 
-    - name: Configure AWS Credentials  # create secrets in github
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    - name: Login to Amazon ECR  #marketplace
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+ 
 
-    - name: Run Trivy vulnerability scanner in repo mode
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs' #The scan type “fs” which means it will scan the code itself. 
-        exit-code: '1' #this will stop the pipeline if any vulnerability found , uncomment to continue pipeline with vulnerabilities .
-        ignore-unfixed: true
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'HIGH,CRITICAL'      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Upload Trivy scan results to GitHub Security tab #results in github security tab
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'      
+ 
 
-    - name: Build, tag, and push docker image to Amazon ECR
-      env:
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        REPOSITORY: test
-        IMAGE_TAG: latest
-      run: |
-        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-#        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+      - name: Build
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v2
+            with:
+              fetch-depth: 0
+          - uses: docker://sonarsource/sonar-scanner-cli:latest
+            env:
+              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+              SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}    
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: '295719266680.dkr.ecr.us-east-1.amazonaws.com/test:d778c6cf7c1e2b3b09daffb273e5b41abfb0e3e6'
-        format: 'table'
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'        
+ 
 
-    - name: Update kube config
-      run: aws eks update-kubeconfig --name new_terraformEKScluster
-    
-    - name: Deploy to EKS
-      run: |
-        kubectl apply -f deployment.yaml
-#        kubectl apply -f service.yaml
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v5
+        with:
+          flutter-version: stable
+
+ 
+
+      - name: Install dependencies
+        run: flutter pub get
